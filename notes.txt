@@ -1,0 +1,7 @@
+Need to check for user error in input file
+
+Dependency queue
+
+Tie breaking depending on date --> need date queue or something
+
+Should probably increase # of options to create more importance options.
