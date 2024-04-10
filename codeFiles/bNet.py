@@ -11,6 +11,7 @@ def getInference():
                         ('Dur', 'Pri'), ('T', 'I'), ('Pri', 'I'), ('Dep', 'I')])
 
     # Get CPDs
+    # Function from getCpds.py
     cpds = create_cpds()
 
     # Add cpds to network
@@ -21,14 +22,3 @@ def getInference():
     inference = VariableElimination(net)
 
     return inference
-
-# Find importance based upon evidence
-# posterior = inference.query(variables=['I'], evidence=ev)
-# posterior = inference.query(variables=['I'])
-
-# # posterior = inference.query(variables=['T'])
-# print(posterior.values[1])
-
-
-
-

@@ -8,12 +8,12 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Input
 from create_tables import *
 
-
-
 def adjust_values(diff, time, importance):
     '''
     Uses the users completed tasks of a certain difficulty class
-    to estimate how long a users new task will take.
+    to estimate how long a users new task will take. Adjust the importance
+    of the task based on the difference in user estimated time vs computer
+    estimated time.
 
     Parameters: diff - difficulty class.
                 time - users time estimate for new task.
@@ -29,6 +29,7 @@ def adjust_values(diff, time, importance):
     actual_times = []
 
     # Get previous time values from database
+    # Function from create_tables.py
     time_tuples = get_times(diff)
 
     for tuple in time_tuples:
@@ -37,7 +38,6 @@ def adjust_values(diff, time, importance):
 
     estimated_times = np.array(estimated_times)
     actual_times = np.array(actual_times)
-
 
     # Won't get a good estimate unless there are "enough" samples to train on
     if len(actual_times) <= 5:
@@ -51,17 +51,17 @@ def adjust_values(diff, time, importance):
         Dense(1)
     ])
 
-    # Create the model
+    # create model
     model.compile(optimizer='adam', loss='mean_squared_error')
 
     # Train the model
     model.fit(estimated_times, actual_times, epochs=100, validation_split=0.2)
 
-    # Evaluate the model
+    # evaluate model
     loss = model.evaluate(estimated_times, actual_times)
-    print("Mean Squared Error:", loss)
+    # print("MSE:", loss)
 
-    # Use the model to predict actual times for new estimated times
+    # Use model to predict actual times for new estimated times
     new_estimated_times = np.array([time])
     predicted_actual_times = model.predict(new_estimated_times)
 
@@ -70,5 +70,4 @@ def adjust_values(diff, time, importance):
 
     return predicted_actual_times.flatten(), imp
 
-# t, i = adjust_times('a', 3, .65)
 

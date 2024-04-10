@@ -2,13 +2,33 @@ from ortools.sat.python import cp_model
 import pandas as pd
 import math
 
-def schedule_day(start_time, end_time, tasks_planned, tasks_to_schedule):
+'''
+This file is scary, I hope you enjoy it as much as I did not!
+'''
+
+
+def schedule_day(start_time, end_time, tasks_planned, tasks):
+    '''
+    This function takes the tasks the user already has planned, along with tasks
+    he or she wishes to complete in the day and generates a schedule.
+
+    Parameters: - start_time is when the user wants to start the work day
+                - end_time is when the user wants to end the work day
+                - tasks_planned are the previously scheduled tasks
+                - tasks are the tasks to be scheduled today
+    
+    Returns:    - schedule is the users schedule for the day       
+    '''
     # Sort tasks and round time to whole number
-    sorted_tasks = sorted(tasks_to_schedule, key=lambda x: x[1], reverse=True)
+    sorted_tasks = sorted(tasks, key=lambda x: x[1], reverse=True)
     # tasks_to_schedule = [(name, importance, int(duration + 0.5)) for name, importance, duration in sorted_tasks]
 
     # Use math.ceil because this program doesn't like decimals, and we want to round up with the NN output
     tasks_to_schedule = [(name, importance, int(math.ceil(duration))) for name, importance, duration in sorted_tasks]
+    
+    # If there isn't enough time in the day for all tasks, cut least important
+    tasks_to_schedule = check_time(tasks_planned, tasks_to_schedule, end_time-start_time)
+
     # Create a new CP-SAT model
     model = cp_model.CpModel()
 
@@ -36,7 +56,7 @@ def schedule_day(start_time, end_time, tasks_planned, tasks_to_schedule):
     solver = cp_model.CpSolver()
     status = solver.Solve(model)
 
-    # Print the schedule
+    # Get schedule
     schedule = []
     if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
         for task_name, task_start, task_end in task_vars:
@@ -46,6 +66,10 @@ def schedule_day(start_time, end_time, tasks_planned, tasks_to_schedule):
 
     '''
     Sorry I know this is disgusting
+
+    I needed a way to insert planned tasks into the schedule because 
+    the library did not work with me to plan tasks that already had 
+    time allocated for them.
     '''
     # s keeps track of the starting point for the next insertion
     s = 0
@@ -61,8 +85,12 @@ def schedule_day(start_time, end_time, tasks_planned, tasks_to_schedule):
             i += i_add
             # o_bool represents whether there is overlap or not
             o_bool = 0
+
+            # Getting start and finish times for scheduled task
             start2 = schedule[i][1]
             fin2 = schedule[i][2]
+
+            # Check to see if user planned task and computer scheduled tasks overlap
             if add_on == 0:
                 o_bool, diff = overlap(start, fin, start2, fin2)
 
@@ -79,6 +107,29 @@ def schedule_day(start_time, end_time, tasks_planned, tasks_to_schedule):
                 schedule[i][2] += add_on
 
     return schedule
+
+def check_time(planned_tasks, tasks_to_plan, max_time):
+    '''
+    Checks if there is enough time in the day for all proposed tasks.
+    If not, get rid of least important tasks one by one until there
+    is enough time.
+    '''
+    total_time = 0
+
+    for t in planned_tasks:
+        total_time += t[2]-t[1]
+    
+    # count is the # of tasks that will fit
+    count = 0
+    for t in tasks_to_plan:
+        time = t[2]
+        if (total_time + time) < max_time:
+            total_time += t[2]
+            count+=1
+        else:
+            return tasks_to_plan[:count]
+    
+    return tasks_to_plan
 
 def overlap(startA, endA, startB, endB):
     '''
