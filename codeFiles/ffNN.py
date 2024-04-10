@@ -10,7 +10,7 @@ from create_tables import *
 
 
 
-def adjust_times(diff, time, importance):
+def adjust_values(diff, time, importance):
     '''
     Uses the users completed tasks of a certain difficulty class
     to estimate how long a users new task will take.
@@ -71,3 +71,4 @@ def adjust_times(diff, time, importance):
     return predicted_actual_times.flatten(), imp
 
 # t, i = adjust_times('a', 3, .65)
+

@@ -1,11 +1,14 @@
 from ortools.sat.python import cp_model
 import pandas as pd
+import math
 
 def schedule_day(start_time, end_time, tasks_planned, tasks_to_schedule):
     # Sort tasks and round time to whole number
     sorted_tasks = sorted(tasks_to_schedule, key=lambda x: x[1], reverse=True)
-    tasks_to_schedule = [(name, importance, int(duration + 0.5)) for name, importance, duration in sorted_tasks]
+    # tasks_to_schedule = [(name, importance, int(duration + 0.5)) for name, importance, duration in sorted_tasks]
 
+    # Use math.ceil because this program doesn't like decimals, and we want to round up with the NN output
+    tasks_to_schedule = [(name, importance, int(math.ceil(duration))) for name, importance, duration in sorted_tasks]
     # Create a new CP-SAT model
     model = cp_model.CpModel()
 
@@ -86,9 +89,9 @@ def overlap(startA, endA, startB, endB):
 
     return interval1.overlaps(interval2), endA-startB
 
-# Example usage
-# start_time = 9  # Assuming day starts at 9 AM
-# end_time = 18  # Assuming work ends at 6 PM
+# Ex
+# start_time = 9  # day starts at 9 AM
+# end_time = 18  # work ends at 6 PM
 # tasks_planned = [["Beer with friend", 9, 10], ["Coffee with friend", 11, 13]]  # Existing tasks
 # tasks_to_schedule = [("Work on project", 0.7, 2), ("Exercise", 0.8, 1), ("Read book", 0.6, 1.5)]  # Tasks to schedule
 
